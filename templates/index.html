@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot for Stress & Anxiety</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        /* Chat Container */
+        .chat-container {
+            width: 60vw;
+            height: 80vh;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Chat Box */
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+        
+        /* User Messages */
+        .chat-message {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 75%;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        
+        /* User Bubble */
+        .user {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+            box-shadow: 0px 3px 6px rgba(0, 123, 255, 0.3);
+        }
+        
+        /* Bot Bubble */
+        .bot {
+            background: #e1f5fe;
+            color: black;
+            align-self: flex-start;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Input Area */
+        .input-container {
+            display: flex;
+            padding: 12px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+        .chat-heading {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: #007bff;
+            padding: 15px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 450px;
+            margin: 20px auto;  /* Centers it horizontally */
+            box-shadow: 0px 3px 6px rgba(0, 123, 255, 0.3);
+        }
+        
+        /* Input Field */
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        /* Send Button */
+        button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            border: none;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <body>
+        <div class="chat-heading">AI Chatbot for Stress & Anxiety Support</div>
+        
+        <div class="chat-container">
+            <div class="chat-box" id="chat-box">
+                <div class="chat-message bot">
+                    Hello! I'm here to support you with stress and anxiety. How can I assist you?
+                </div>
+            </div>
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Type your message..." />
+                <button id="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </body>
+    
+    
+
+
+    <script>   document.addEventListener("DOMContentLoaded", function () {
+        let inputField = document.getElementById("user-input");
+        let sendButton = document.getElementById("send-btn");
+
+        if (inputField && sendButton) {
+            inputField.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage(); // Calls your function directly
+                }
+            });
+        } else {
+            console.error("Error: Input field or Send button not found.");
+        }
+    });
+    async function sendMessage() {
+        let userInput = document.getElementById("user-input").value;
+        if (!userInput) return;
+        
+        let chatBox = document.getElementById("chat-box");
+    
+        // Display user message
+        let userMessage = document.createElement("div");
+        userMessage.classList.add("chat-message", "user");
+        userMessage.innerText = userInput;
+        chatBox.appendChild(userMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById("user-input").value = "";
+    
+        // Send message to Flask backend
+        try {
+            let response = await fetch("http://127.0.0.1:5000/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            });
+    
+            let data = await response.json();
+            console.log("Backend Response:", data);  // Debugging: Log the response
+    
+            // Handle backend errors
+            if (data.error) {
+                console.error("Error:", data.error);
+                let botMessage = document.createElement("div");
+                botMessage.classList.add("chat-message", "bot");
+                botMessage.innerText = "Error: " + data.error;
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                return;  // Stop further execution
+            }
+    
+            // Display bot response
+            if (data.response) {
+                let botMessage = document.createElement("div");
+                botMessage.classList.add("chat-message", "bot");
+                botMessage.innerText = data.response;
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } else {
+                console.error("Error: No response from bot");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            let botMessage = document.createElement("div");
+            botMessage.classList.add("chat-message", "bot");
+            botMessage.innerText = "An error occurred. Please try again.";
+            chatBox.appendChild(botMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+       
+    </script>
+
+</body>
+</html>
